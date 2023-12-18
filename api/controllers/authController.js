@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const User = require('../models/useri');
 const { sendResetPasswordEmail } = require('../controllers/mailController');
 const crypto = require('crypto');
 

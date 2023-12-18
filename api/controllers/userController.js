@@ -1,24 +1,36 @@
-const crypto = require('crypto');
+//const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createUser } = require('../models/user');
-const { sendActivationEmail } = require('../controllers/mailController');
+const { createUser } = require('../models/useri');
+//const { sendActivationEmail } = require('../controllers/mailController');
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
 
-  const user = {
-    user_name: username,
-    email,
-    role: 'user',
-    password, 
-  };
-
   try {
-    const userId = await createUser(user);
-    res.status(201).json({ message: 'Registration was successful', userId });
+    // Tarkista, onko käyttäjätunnus tai sähköpostiosoite jo käytössä
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username or email already in use' });
+    }
+    
+    const activationToken = crypto.randomBytes(32).toString('hex');
+
+    // Tallenna käyttäjätiedot odottamaan vahvistusta
+    const user = new User({
+      user_name: username,
+      email,
+      role: 'user',
+      password,
+      activationToken,
+      activationExpires: Date.now() + 900000, // 15 minuuttia
+    });
+
+    await user.save();
+
+    res.status(201).json({ message: 'Registration was successful. Check your email for activation instructions.' });
   } catch (error) {
-    console.error('Virhe rekisteröinnissä:', error);
+    console.error('Error on Registration:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };

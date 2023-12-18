@@ -2,16 +2,15 @@ const express = require('express')
 const router = express.Router();
 const { authenticateToken } = require('../middlewares/auth');
 
-
-const {v4: uuidv4 } = require('uuid');
+// Testipostaus
 const posts = [
     { 
-        id: uuidv4(),
+        id: 1,
         message: 'KURWA!',
     },
 ];
 
-// Esimerkki reitistä?
+// Esimerkki reitistä??
 router.get('/', authenticateToken, (req, res) => {
     res.json(posts);
   });

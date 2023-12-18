@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-const ResetPassword = ({ setView, match }) => {
+const ResetPassword = ({ match }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -64,8 +65,9 @@ const ResetPassword = ({ setView, match }) => {
       <p>
         {/* Mahdollista ulinaa käyttäjälle */}
       </p>
-
-      <button onClick={() => setView('login')}>Return to Log in</button>
+      <Link to="/login">
+        <button>Return to Log in</button>
+      </Link>
     </div>
   );
 };

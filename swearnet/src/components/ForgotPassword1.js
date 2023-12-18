@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-const ForgotPassword = ({ setView }) => {
+const ForgotPassword = () => {
   const [email, setEmail] = useState('');
 
   const handleResetPassword = async () => {
@@ -17,7 +18,7 @@ const ForgotPassword = ({ setView }) => {
 
       if (response.ok) {
         console.log('Password reset link sent successfully:', data.message);
-        setView('login')
+        <Link to="/login"/>
       } 
       else {
         console.error('Error sending password reset link:', data.message);
@@ -40,7 +41,9 @@ const ForgotPassword = ({ setView }) => {
       </form>
 
       <div>
-        <button onClick={() => setView('login')}>Return to Login</button>
+        <Link to="/login">
+          <button>Return to Login</button>
+        </Link>
       </div>
     </div>
   );

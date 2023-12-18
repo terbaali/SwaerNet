@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-const Registration = ({ setView }) => {
+const Registration = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,7 +73,9 @@ const Registration = ({ setView }) => {
         </button>
       </form>
       <div>
-        <button onClick={() => setView('login')}>Return</button>
+        <Link to="/login">
+          <button>Return to login</button>
+        </Link>
       </div>
     </div>
   );

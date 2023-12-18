@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
-const ActivateAccount = ({ setView, match }) => {
+const ActivateAccount = ({ match }) => {
   useEffect(() => {
     
     const activateAccount = async () => {
@@ -31,7 +32,9 @@ const ActivateAccount = ({ setView, match }) => {
       <h1>SwearNet</h1>
       <h2>Account Activated</h2>
       <p>Your account is now activated. You can log in with your credentials.</p>
-      <button onClick={() => setView('login')}>Log in</button>
+      <Link to="/login">
+        <button>Log in</button>
+      </Link>
     </div>
   );
 };
