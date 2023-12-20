@@ -37,7 +37,6 @@ const register = async (req, res) => {
 
 const addUserToDatabase = async (user) => {
   try {
-    // Lisää käyttäjä tietokantaan
     const result = await query('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [
       user.username,
       user.password,
@@ -57,41 +56,41 @@ const activateAccount = async (req, res) => {
   const { activationToken } = req.params;
 
   try {
-    // Etsi käyttäjä aktivointitokenin perusteella väliaikaisesta tallennuspaikasta
     const temporaryUser = temporaryStorage[activationToken];
 
     if (!temporaryUser) {
       return res.status(404).json({ message: 'Invalid activation link' });
-    }
-
-    // Lisää käyttäjä varsinaiseen käyttäjätietokantaan
-    
+    }    
     await addUserToDatabase(temporaryUser);
 
-    // Poista käyttäjä väliaikaisesta tallennuspaikasta
     delete temporaryStorage[activationToken];
 
-    return res.redirect('http://localhost:3000');
-  } catch (error) {
+    return res.status(200).json({ message: 'Account activated successfully' });
+  } 
+  catch (error) {
     console.error('Error activating account:', error);
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
 
+const queryAsync = util.promisify(db.query).bind(db);
+
 const login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    //const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
-    //if (rows.length === 1 && bcrypt.compareSync(password, rows[0].password)) {
-      // Luo JWT-token
-      //const token = jwt.sign({ userId: rows[0].id }, 'salaisuus', { expiresIn: '1h' });
-      const token = jwt.sign({ userId: email }, JWT_SECRET, { expiresIn: '1h' });
+    const rows = await queryAsync('SELECT * FROM users WHERE email = ?', [email]);
+    
+    if (rows.length === 1) {
+    //if (rows.length === 1 && bcrypt.compareSync(row[0].password, rows[0].password)) { KORJAA TÄÄÄ
+      const token = jwt.sign({ userId: rows[0].id }, JWT_SECRET, { expiresIn: '1h' });
       res.status(200).json({ message: 'Logged in successfully', token });
-    //} else {
-      //res.status(401).json({ message: 'Invalid email or password' });
-    //}
-  } catch (error) {
+    } 
+    else {
+      res.status(401).json({ message: 'Invalid email or password' });
+    }
+  } 
+  catch (error) {
     console.error('Error on login:', error);
     res.status(500).json({ message: 'Internal Server Error' });
   }

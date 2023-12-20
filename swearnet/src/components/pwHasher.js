@@ -7,11 +7,12 @@ export const hashPassword = async (password) => {
   try {
     const hashedBcrypt = await bcrypt.hash(password, 10);
     
-    const hashedPassword = sha256(hashedBcrypt).toString();
+    //const hashedPassword = sha256(hashedBcrypt).toString();
 
     //const pepper = 
     //const hashedPassword = sha256.updatehashedBcrypt + pepper).digest('hex');
-    return hashedPassword;
+    //return hashedPassword;
+    return hashedBcrypt
   } 
   catch (error) {
     throw new Error('Error hashing password');

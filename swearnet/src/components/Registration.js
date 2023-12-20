@@ -11,7 +11,11 @@ const Registration = () => {
 
   const handleRegistration = async () => {
     try {
-      // Tarkasta, että salasanat vastaavat ja ovat tarpeeksi vahvat
+      if (!username || !email || !password || !confirmPassword) {
+        alert('All fields are required.');
+        return;
+      }
+
       if (!passwordsMatch()) {
         alert('Passwords do not match');
         return;
@@ -22,7 +26,6 @@ const Registration = () => {
         return;
       }
 
-      // Desinfioi käyttäjän syötteet ennen tallentamista
       const sanitizedUsername = sanitizeInput(username);
       const sanitizedEmail = sanitizeInput(email);
 
@@ -39,12 +42,14 @@ const Registration = () => {
       const data = await response.json();
 
       if (response.ok) {
-        console.log('Registration successful:', data);
+        alert('Registration successful. Please log in.');
+        // Redirect to the login page
+        window.location.href = '/login';
       } else {
-        console.error('Registration failed:', data.message);
+        alert('Registration failed:', data.message);
       }
     } catch (error) {
-      console.error('Error registering:', error.message);
+      alert('Error registering:', error.message);
     }
   };
 

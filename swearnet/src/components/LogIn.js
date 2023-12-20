@@ -10,7 +10,7 @@ const Login = ({ onLogin }) => {
   const handleLogin = async () => {
     try {
       if (!email || !password) {
-        console.error('Email and password are required.');
+        alert('Email and password are required.');
         return;
       }
 
@@ -31,11 +31,11 @@ const Login = ({ onLogin }) => {
         //onLogin(data.token);
         navigate('/content');
       } else {
-        console.error('Login failed:', data.message);
+        alert('Login failed:', data.message);
       }
     } 
     catch (error) {
-      console.error('Error logging in:', error.message);
+      alert('Error logging in:', error.message);
     }
   };
 

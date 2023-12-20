@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const ResetPassword = ({ match }) => {
+const ResetPassword = (token) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleResetPassword = async () => {
+    
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
@@ -17,7 +18,7 @@ const ResetPassword = ({ match }) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/auth/reset-password/${match.params.token}`, {
+      const response = await fetch(`http://localhost:3000/auth/reset-password/${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,11 +31,12 @@ const ResetPassword = ({ match }) => {
       if (response.ok) {
         console.log('Password reset successful:', data);
       } else {
-        console.error('Password reset failed:', data.message);
+        alert('Password reset failed:', data.message);
       }
     } catch (error) {
-      console.error('Error resetting password:', error.message);
+      alert('Error resetting password:', error.message);
     }
+
   };
 
   return (

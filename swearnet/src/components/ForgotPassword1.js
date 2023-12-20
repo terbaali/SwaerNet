@@ -7,6 +7,11 @@ const ForgotPassword = () => {
 
   const handleResetPassword = async () => {
     try {
+      if (!email) {
+        alert('Email is required.');
+        return;
+      }
+
       const response = await fetch('http://localhost:3000/auth/forgot-password', {
         method: 'POST',
         headers: {
@@ -18,15 +23,13 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if (response.ok) {
-        console.log('Password reset link sent successfully:', data.message);
+        alert('Password reset link sent successfully: ' + data.message);
         navigate('/login');
-      } 
-      else {
-        console.error('Error sending password reset link:', data.message);
+      } else {
+        alert(data.message);
       }
-    } 
-    catch (error) {
-      console.error('Error sending password reset link:', error.message);
+    } catch (error) {
+      alert('Error sending password reset link: ' + error.message);
     }
   };
 
@@ -38,7 +41,9 @@ const ForgotPassword = () => {
         <label>Email:</label>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
 
-        <button type="button" onClick={handleResetPassword}>Reset Password</button>
+        <button type="button" onClick={handleResetPassword}>
+          Reset Password
+        </button>
       </form>
 
       <div>

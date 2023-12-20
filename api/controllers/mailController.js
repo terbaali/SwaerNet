@@ -33,15 +33,18 @@ const sendActivationEmail = (email, token) => {
 };
 
 const sendResetPasswordEmail = (email, resetToken) => {
-    const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE,
-      auth: {
+  const transporter = nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE,
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
+    auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
     });
-  
-    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+
+    const resetLink = `http://localhost:3000/?token=${resetToken}`;
   
     const mailOptions = {
       from: process.env.EMAIL_USER,
