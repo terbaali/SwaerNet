@@ -1,32 +1,36 @@
 import React, { useState } from 'react';
 import { hashPassword } from './pwHasher';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-
-const Login = () => {
-  
+const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
+      if (!email || !password) {
+        console.error('Email and password are required.');
+        return;
+      }
+
       const hashedPassword = await hashPassword(password);
 
-      const response = await fetch('http://localhost:3000/login', {  
+      const response = await fetch('http://localhost:3000/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password: hashedPassword }), 
+        body: JSON.stringify({ email, password: hashedPassword }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        console.log('Login successful:', data);
-        // Lisää tässä kohtaa tarvittavat toimenpiteet, esim. käyttäjän tilan päivitys ja siirtyminen eteenpäin
-      } 
-      else {
+        sessionStorage.setItem('token', data.token);
+        //onLogin(data.token);
+        navigate('/content');
+      } else {
         console.error('Login failed:', data.message);
       }
     } 
@@ -46,7 +50,9 @@ const Login = () => {
         <label>Password:</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-        <button type="button" onClick={handleLogin}>Login</button>
+        <button type="button" onClick={handleLogin}>
+          Login
+        </button>
       </form>
 
       <div>
@@ -62,5 +68,3 @@ const Login = () => {
 };
 
 export default Login;
-
-

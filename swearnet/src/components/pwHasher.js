@@ -1,13 +1,13 @@
 import bcrypt from "bcryptjs-react";
 import crypto from 'crypto-js/sha256';
+import sha256 from 'crypto-js/sha256';
 
 // Funktio salasanan hashaukseen bcryptillä ja sha256:lla
 export const hashPassword = async (password) => {
   try {
     const hashedBcrypt = await bcrypt.hash(password, 10);
     
-    const sha256 = crypto.createHash('sha256');
-    const hashedPassword = sha256.update(hashedBcrypt).digest('hex');
+    const hashedPassword = sha256(hashedBcrypt).toString();
 
     //const pepper = 
     //const hashedPassword = sha256.updatehashedBcrypt + pepper).digest('hex');

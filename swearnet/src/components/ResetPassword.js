@@ -6,18 +6,18 @@ const ResetPassword = ({ match }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleResetPassword = async () => {
-    
     if (password !== confirmPassword) {
-      console.error('Passwords do not match');
+      alert('Passwords do not match');
       return;
     }
 
     if (password.length < 10 || !/[!@#$%^&*(),.?":{}|<>]/g.test(password)) {
-      console.error('Password does not meet the requirements');
+      alert('Password does not meet the requirements, must be over 10 characters and minimum of 1 special character');
       return;
     }
+
     try {
-      const response = await fetch(`http://localhost:3000/reset-password/${match.params.token}`, {
+      const response = await fetch(`http://localhost:3000/auth/reset-password/${match.params.token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,12 +29,10 @@ const ResetPassword = ({ match }) => {
 
       if (response.ok) {
         console.log('Password reset successful:', data);
-      } 
-      else {
+      } else {
         console.error('Password reset failed:', data.message);
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.error('Error resetting password:', error.message);
     }
   };
@@ -66,7 +64,7 @@ const ResetPassword = ({ match }) => {
         {/* Mahdollista ulinaa käyttäjälle */}
       </p>
       <Link to="/login">
-        <button>Return to Log in</button>
+        <button>To Log in</button>
       </Link>
     </div>
   );

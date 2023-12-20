@@ -6,7 +6,7 @@ const ActivateAccount = ({ match }) => {
     
     const activateAccount = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/activate/${match.params.token}`, {
+        const response = await fetch(`http://localhost:3000/auth/activate/${match.params.token}`, {
           method: 'GET',
         });
 

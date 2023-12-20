@@ -7,7 +7,7 @@ const posts = [
     { 
         id: 1,
         message: 'KURWA!',
-    },
+    }
 ];
 
 // Esimerkki reitistä??

@@ -4,13 +4,16 @@ require('dotenv').config();
 const sendActivationEmail = (email, token) => {
   const transporter = nodemailer.createTransport({
     service: process.env.EMAIL_SERVICE,
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
     },
   });
 
-  const activationLink = `http://localhost:3000/activate/${token}`;
+  const activationLink = `http://localhost:3000/users/activate/${token}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -22,7 +25,8 @@ const sendActivationEmail = (email, token) => {
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.error('Error sending activation email:', error);
-    } else {
+    } 
+    else {
       console.log('Activation email sent:', info.response);
     }
   });
@@ -49,7 +53,8 @@ const sendResetPasswordEmail = (email, resetToken) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error('Error sending reset password email:', error);
-      } else {
+      } 
+      else {
         console.log('Reset password email sent:', info.response);
       }
     });

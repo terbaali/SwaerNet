@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
+  const navigate = useNavigate();
 
   const handleResetPassword = async () => {
     try {
-      const response = await fetch('http://localhost:3000/forgot-password', {
+      const response = await fetch('http://localhost:3000/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -18,7 +19,7 @@ const ForgotPassword = () => {
 
       if (response.ok) {
         console.log('Password reset link sent successfully:', data.message);
-        <Link to="/login"/>
+        navigate('/login');
       } 
       else {
         console.error('Error sending password reset link:', data.message);

@@ -1,5 +1,8 @@
 const db = require('../db');
 
+
+
+
 const createUser = (user) => {
   return new Promise((resolve, reject) => {
     const sql = 'INSERT INTO users (user_name, email, role, password) VALUES (?, ?, ?, ?)';

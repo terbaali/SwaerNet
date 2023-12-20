@@ -1,32 +1,32 @@
-//const crypto = require('crypto');
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createUser } = require('../models/useri');
-//const { sendActivationEmail } = require('../controllers/mailController');
+const User = require('../models/useri');
+const db = require('../db');
+const util = require('util');
+const { sendActivationEmail } = require('../controllers/mailController');
+require('dotenv').config();
+
+const query = util.promisify(db.query).bind(db);
+
+const { JWT_SECRET } = process.env;
+const temporaryStorage = {};
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
-    // Tarkista, onko käyttäjätunnus tai sähköpostiosoite jo käytössä
-    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Username or email already in use' });
-    }
-    
     const activationToken = crypto.randomBytes(32).toString('hex');
-
-    // Tallenna käyttäjätiedot odottamaan vahvistusta
-    const user = new User({
-      user_name: username,
+    
+    temporaryStorage[activationToken] = {
+      username,
       email,
-      role: 'user',
       password,
       activationToken,
       activationExpires: Date.now() + 900000, // 15 minuuttia
-    });
+    };
 
-    await user.save();
+    sendActivationEmail(email, activationToken);
 
     res.status(201).json({ message: 'Registration was successful. Check your email for activation instructions.' });
   } catch (error) {
@@ -35,23 +35,68 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
-  // Käyttäjän kirjautuminen
-  const { email, password } = req.body;
+const addUserToDatabase = async (user) => {
+  try {
+    // Lisää käyttäjä tietokantaan
+    const result = await query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [
+      user.username,
+      user.email,
+      user.password
+    ]);
 
-  // Etsi käyttäjä sähköpostiosoitteen perusteella
-  const user = await User.findOne({ email });
+    console.log('User added to database:', result);
 
-  // Tarkista salasana
-  if (user && bcrypt.compareSync(password, user.password)) {
-    // Luo JWT-token
-    const token = jwt.sign({ userId: user._id }, 'salaisuus', { expiresIn: '1h' });
-
-    res.json({ message: 'Logged in successfully', token });
-  } else {
-    res.status(401).json({ message: 'Invalid email or password' });
+    return result;
+  } catch (error) {
+    console.error('Error adding user to database:', error);
+    throw error;
   }
 };
+
+const activateAccount = async (req, res) => {
+  const { activationToken } = req.params;
+
+  try {
+    // Etsi käyttäjä aktivointitokenin perusteella väliaikaisesta tallennuspaikasta
+    const temporaryUser = temporaryStorage[activationToken];
+
+    if (!temporaryUser) {
+      return res.status(404).json({ message: 'Invalid activation link' });
+    }
+
+    // Lisää käyttäjä varsinaiseen käyttäjätietokantaan
+    
+    await addUserToDatabase(temporaryUser);
+
+    // Poista käyttäjä väliaikaisesta tallennuspaikasta
+    delete temporaryStorage[activationToken];
+
+    return res.redirect('http://localhost:3000');
+  } catch (error) {
+    console.error('Error activating account:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    //const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+    //if (rows.length === 1 && bcrypt.compareSync(password, rows[0].password)) {
+      // Luo JWT-token
+      //const token = jwt.sign({ userId: rows[0].id }, 'salaisuus', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: email }, JWT_SECRET, { expiresIn: '1h' });
+      res.status(200).json({ message: 'Logged in successfully', token });
+    //} else {
+      //res.status(401).json({ message: 'Invalid email or password' });
+    //}
+  } catch (error) {
+    console.error('Error on login:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
 
 /*
 const forgotPassword = async (req, res) => {
@@ -106,6 +151,7 @@ const resetPassword = async (req, res) => {
 module.exports = {
   register,
   login,
+  activateAccount,
   //forgotPassword,
   //resetPassword,
 };

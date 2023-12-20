@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { hashPassword } from './pwHasher';
+import DOMPurify from 'dompurify';
 
 const Registration = () => {
   const [username, setUsername] = useState('');
@@ -10,29 +12,38 @@ const Registration = () => {
   const handleRegistration = async () => {
     try {
       // Tarkasta, että salasanat vastaavat ja ovat tarpeeksi vahvat
-      if (!passwordsMatch() || !validatePassword()) {
-        console.error('Password validation failed');
+      if (!passwordsMatch()) {
+        alert('Passwords do not match');
         return;
       }
 
-      const response = await fetch('http://localhost:3000/register', {
+      if (!validatePassword()) {
+        alert('Password does not meet the requirements, must be over 10 characters and minimum of 1 special character');
+        return;
+      }
+
+      // Desinfioi käyttäjän syötteet ennen tallentamista
+      const sanitizedUsername = sanitizeInput(username);
+      const sanitizedEmail = sanitizeInput(email);
+
+      const hashedPassword = await hashPassword(password);
+
+      const response = await fetch('http://localhost:3000/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username: sanitizedUsername, email: sanitizedEmail, password: hashedPassword }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         console.log('Registration successful:', data);
-      } 
-      else {
+      } else {
         console.error('Registration failed:', data.message);
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.error('Error registering:', error.message);
     }
   };
@@ -44,6 +55,10 @@ const Registration = () => {
 
   const passwordsMatch = () => {
     return password === confirmPassword;
+  };
+
+  const sanitizeInput = (input) => {
+    return DOMPurify.sanitize(input); 
   };
 
   return (
