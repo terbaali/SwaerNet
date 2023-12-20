@@ -38,10 +38,10 @@ const register = async (req, res) => {
 const addUserToDatabase = async (user) => {
   try {
     // Lisää käyttäjä tietokantaan
-    const result = await query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [
+    const result = await query('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [
       user.username,
-      user.email,
-      user.password
+      user.password,
+      user.email
     ]);
 
     console.log('User added to database:', result);
