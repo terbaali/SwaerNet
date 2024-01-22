@@ -1,11 +1,10 @@
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/useri');
-const db = require('../db');
 const util = require('util');
 const { sendActivationEmail } = require('../controllers/mailController');
 require('dotenv').config();
+const db = require('../db');
 
 const query = util.promisify(db.query).bind(db);
 
@@ -78,24 +77,78 @@ const queryAsync = util.promisify(db.query).bind(db);
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+  const ip = req.ip;
+
   try {
+    var token = null
+    var succeed = false
     const rows = await queryAsync('SELECT * FROM users WHERE email = ?', [email]);
-    
-    if (rows.length === 1) {
-    //if (rows.length === 1 && bcrypt.compareSync(row[0].password, rows[0].password)) { KORJAA TÄÄÄ
-      const token = jwt.sign({ userId: rows[0].id }, JWT_SECRET, { expiresIn: '1h' });
-      res.status(200).json({ message: 'Logged in successfully', token });
+
+    if (rows.length === 1 && bcrypt.compareSync(password, rows[0].password)) {
+      let data = {
+        userId: rows[0].user_id,
+        userName: rows[0].username,
+        isAdmin: rows[0].isAdmin,
+        expiresIn: Date.now() + 3600000
+      }
+      token = jwt.sign({ data: data }, JWT_SECRET, { expiresIn: '1h' });
+      succeed = true; 
     } 
     else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      const insertResult = await queryAsync(
+        'CALL handle_login_attempt (?, ?, ?, ?, @a, @a)',
+        [ip, succeed, rows[0].user_id, token]
+      );
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
+
+    const insertResult = await queryAsync(
+      'CALL handle_login_attempt (?, ?, ?, ?, @a, @a)',
+      [ip, succeed, rows[0].user_id, token]
+    );
+
+    if (insertResult[1] && insertResult[1].length > 0) {
+      return res.status(200).json({ message: 'Logged in successfully', token });
+    } 
+    else {
+      if (insertResult[1][0].new_banned) {
+        const baninfo = insertResult[1][0];
+        const banCookieInfo = {
+          banned: insertResult[1][0].new_banned,
+          expires: insertResult[1][0].new_expires,
+        };
+        res.cookie('banInfo', banCookieInfo, { maxAge: insertResult[1][0].new_expires-Date.now(), httpOnly: false });
+        return res.status(403).json({ message: 'UR BANNED', baninfo });
+      }
+      return res.status(501).json({ message: 'Failed to log in' });
+    }
+    
   } 
   catch (error) {
     console.error('Error on login:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
+
+const checkAdminStatus = async (req, res) => {
+  const token = req.headers.authorization;
+
+  try {
+    const user = await queryAsync('SELECT isAdmin FROM users WHERE user_id = ?', [req.user.userId]);
+
+    if (!user || user.length === 0) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const isAdmin = user[0].isAdmin === 1;
+    res.json(isAdmin);
+  } 
+  catch (error) {
+    console.error('Error checking admin status:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
 
 /*
 const forgotPassword = async (req, res) => {
@@ -151,6 +204,7 @@ module.exports = {
   register,
   login,
   activateAccount,
+  checkAdminStatus,
   //forgotPassword,
   //resetPassword,
 };

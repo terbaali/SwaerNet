@@ -21,14 +21,13 @@ const Registration = () => {
         return;
       }
 
-      if (!validatePassword()) {
-        alert('Password does not meet the requirements, must be over 10 characters and minimum of 1 special character');
+      if (!validatePassword(password)) {
+        alert('Password does not meet the requirements, must be over 10 characters and minimum of 1 special character, number capital char');
         return;
       }
 
       const sanitizedUsername = sanitizeInput(username);
       const sanitizedEmail = sanitizeInput(email);
-
       const hashedPassword = await hashPassword(password);
 
       const response = await fetch('http://localhost:3000/users/register', {
@@ -42,19 +41,20 @@ const Registration = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Registration successful. Please log in.');
-        // Redirect to the login page
-        window.location.href = '/login';
-      } else {
+        alert('Registration successful. Please check your email and activate your account.');
+        window.location.href = '/';
+      } 
+      else {
         alert('Registration failed:', data.message);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       alert('Error registering:', error.message);
     }
   };
 
-  const validatePassword = () => {
-    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{10,}$/;
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{10,}$/;
     return regex.test(password);
   };
 

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { hashPassword } from './pwHasher';
 
 const ResetPassword = (token) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const navigate = useNavigate();
+  
   const handleResetPassword = async () => {
-    
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
@@ -18,25 +20,28 @@ const ResetPassword = (token) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/auth/reset-password/${token}`, {
+      const hashedPassword = await hashPassword(password);
+      const response = await fetch(`http://localhost:3000/auth/reset-password/${token.token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ newPassword: password }),
+        body: JSON.stringify({ newPassword: hashedPassword }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        console.log('Password reset successful:', data);
-      } else {
+        alert('Password reset successful:');
+        navigate('/');
+      } 
+      else {
         alert('Password reset failed:', data.message);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       alert('Error resetting password:', error.message);
     }
-
   };
 
   return (

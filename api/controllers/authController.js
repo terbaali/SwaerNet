@@ -5,7 +5,6 @@ const util = require('util');
 const query = util.promisify(db.query).bind(db);
 const { sendResetPasswordEmail } = require('../controllers/mailController');
 
-// Väliaikainen tallennuspalvelin
 const temporaryStorage = {};
 
 const forgotPassword = async (req, res) => {
@@ -21,12 +20,10 @@ const forgotPassword = async (req, res) => {
 
     temporaryStorage[resetToken] = {
       email,
-      resetToken,
       resetExpires: new Date(Date.now() + 900000),
     };
 
     sendResetPasswordEmail(email, resetToken);
-
     res.json({ message: 'Password reset link sent successfully' });
   } 
   catch (error) {
@@ -42,11 +39,13 @@ const resetPassword = async (req, res) => {
   try {
     const temporaryUser = temporaryStorage[resetToken];
 
-    if (!temporaryUser || temporaryUser.resetExpires < new Date()) {
-      return res.status(401).json({ message: 'Invalid or outdated link' });
+    if (!temporaryUser || temporaryUser.resetExpires < new Date(Date.now())) {
+      return res.status(401).json({ message: 'Invalid or outdated link',  resetToken});
     }
 
     const { email } = temporaryUser;
+
+    await query('UPDATE users SET password = ? WHERE email = ?', [newPassword, email]);
 
     delete temporaryStorage[resetToken];
 

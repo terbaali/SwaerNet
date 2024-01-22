@@ -25,10 +25,12 @@ const ForgotPassword = () => {
       if (response.ok) {
         alert('Password reset link sent successfully: ' + data.message);
         navigate('/login');
-      } else {
+      } 
+      else {
         alert(data.message);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       alert('Error sending password reset link: ' + error.message);
     }
   };
